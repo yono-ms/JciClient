@@ -35,11 +35,7 @@ class HomeFragment : BaseFragment() {
             }
 
             binding.floatingActionButton.setOnClickListener {
-                findNavController().navigate(
-                    HomeFragmentDirections.actionGlobalMessageDialogFragment(
-                        "TEST"
-                    )
-                )
+                findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToAddRemoteFragment())
             }
 
             viewModel.throwable.observe(viewLifecycleOwner) {

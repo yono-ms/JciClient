@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">JciClient</string>
+    <string name="hint_domain_name">domain name</string>
+    <string name="hint_account_name">account name</string>
+    <string name="hint_account_password">account password</string>
+    <string name="error_domain_name">input domain name</string>
+    <string name="error_account_name">input account name</string>
+    <string name="error_account_password">input account password</string>
+    <string name="button_add_remote">add remote</string>
 </resources>
