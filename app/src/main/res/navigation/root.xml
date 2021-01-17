@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
+    app:startDestination="@id/homeFragment">
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.jciclient.HomeFragment"
+        android:label="home_fragment"
+        tools:layout="@layout/home_fragment" />
+    <dialog
+        android:id="@+id/messageDialogFragment"
+        android:name="com.example.jciclient.MessageDialogFragment"
+        android:label="message_dialog_fragment">
+        <argument
+            android:name="message"
+            app:argType="string" />
+    </dialog>
+    <action
+        android:id="@+id/action_global_messageDialogFragment"
+        app:destination="@id/messageDialogFragment" />
+</navigation>
