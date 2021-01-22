@@ -16,6 +16,25 @@
         tools:context=".AddRemoteFragment">
 
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textInputLayoutRemoteName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:errorEnabled="true"
+            app:errorText="@{viewModel.remoteNameError}"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/hint_remote_name"
+                android:inputType="textWebEmailAddress"
+                android:text="@={viewModel.remoteName}" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/textInputLayoutDomainName"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -23,7 +42,7 @@
             app:errorText="@{viewModel.domainNameError}"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toBottomOf="@+id/textInputLayoutRemoteName">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:layout_width="match_parent"
@@ -35,6 +54,25 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textInputLayoutShareName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:errorEnabled="true"
+            app:errorText="@{viewModel.shareNameError}"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textInputLayoutDomainName">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/hint_share_name"
+                android:inputType="textWebEmailAddress"
+                android:text="@={viewModel.shareName}" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/textInputLayoutAccountName"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -42,7 +80,7 @@
             app:errorText="@{viewModel.accountNameError}"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textInputLayoutDomainName">
+            app:layout_constraintTop_toBottomOf="@+id/textInputLayoutShareName">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:layout_width="match_parent"

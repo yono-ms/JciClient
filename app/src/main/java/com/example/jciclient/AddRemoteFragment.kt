@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import com.example.jciclient.databinding.AddRemoteFragmentBinding
 
 class AddRemoteFragment : BaseFragment() {
@@ -18,6 +19,17 @@ class AddRemoteFragment : BaseFragment() {
         return AddRemoteFragmentBinding.inflate(inflater).also { binding ->
             binding.viewModel = viewModel
             binding.lifecycleOwner = viewLifecycleOwner
+
+            viewModel.checkOk.observe(viewLifecycleOwner) {
+                it?.let {
+                    findNavController().popBackStack()
+                    viewModel.checkOk.value = null
+                }
+            }
+        }.also { binding ->
+            binding.button.setOnClickListener {
+                viewModel.checkRemote()
+            }
         }.root
     }
 }

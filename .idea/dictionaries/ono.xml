@@ -2,6 +2,7 @@
   <dictionary name="ono">
     <words>
       <w>jciclient</w>
+      <w>jcifs</w>
     </words>
   </dictionary>
 </component>

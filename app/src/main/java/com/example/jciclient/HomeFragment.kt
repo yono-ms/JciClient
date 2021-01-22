@@ -27,7 +27,10 @@ class HomeFragment : BaseFragment() {
             binding.lifecycleOwner = viewLifecycleOwner
 
             binding.recyclerView.layoutManager = LinearLayoutManager(context)
-            binding.recyclerView.adapter = RemoteAdapter().also { adapter ->
+            binding.recyclerView.adapter = RemoteAdapter {
+                logger.info("onClick $it")
+                viewModel.checkRemote(it)
+            }.also { adapter ->
                 viewModel.items.observe(viewLifecycleOwner) { items ->
                     logger.info("items.changed.")
                     adapter.submitList(items)
@@ -50,18 +53,25 @@ class HomeFragment : BaseFragment() {
         }.root
     }
 
-    class RemoteAdapter : ListAdapter<RemoteEntity, RemoteAdapter.ViewHolder>(
-        object : DiffUtil.ItemCallback<RemoteEntity>() {
-            override fun areItemsTheSame(oldItem: RemoteEntity, newItem: RemoteEntity): Boolean {
-                return oldItem.id == newItem.id
-            }
+    class RemoteAdapter(private val onClick: (entity: RemoteEntity) -> Unit) :
+        ListAdapter<RemoteEntity, RemoteAdapter.ViewHolder>(
+            object : DiffUtil.ItemCallback<RemoteEntity>() {
+                override fun areItemsTheSame(
+                    oldItem: RemoteEntity,
+                    newItem: RemoteEntity
+                ): Boolean {
+                    return oldItem.id == newItem.id
+                }
 
-            override fun areContentsTheSame(oldItem: RemoteEntity, newItem: RemoteEntity): Boolean {
-                return oldItem == newItem
-            }
+                override fun areContentsTheSame(
+                    oldItem: RemoteEntity,
+                    newItem: RemoteEntity
+                ): Boolean {
+                    return oldItem == newItem
+                }
 
-        }
-    ) {
+            }
+        ) {
         class ViewHolder(val binding: RemoteItemBinding) : RecyclerView.ViewHolder(binding.root)
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -70,7 +80,11 @@ class HomeFragment : BaseFragment() {
                     LayoutInflater.from(parent.context),
                     parent,
                     false
-                )
+                ).apply {
+                    cardView.setOnClickListener {
+                        viewModel?.let(onClick)
+                    }
+                }
             )
         }
 

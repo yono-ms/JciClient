@@ -7,7 +7,9 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "remote_entity")
 data class RemoteEntity(
     @PrimaryKey(autoGenerate = true) val id: Int,
+    @ColumnInfo(name = "remote_name") val remoteName: String,
     @ColumnInfo(name = "domain_name") val domainName: String,
+    @ColumnInfo(name = "share_name") val shareName: String,
     @ColumnInfo(name = "account_name") val accountName: String,
     @ColumnInfo(name = "account_password") val accountPassword: String,
 )
