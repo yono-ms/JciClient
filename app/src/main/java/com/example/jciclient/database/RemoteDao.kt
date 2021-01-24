@@ -16,4 +16,7 @@ interface RemoteDao {
 
     @Query("SELECT * FROM remote_entity")
     fun getAllLiveData(): LiveData<List<RemoteEntity>>
+
+    @Query("SELECT * FROM remote_entity WHERE id = :id")
+    suspend fun get(id: Int): RemoteEntity?
 }

@@ -1,0 +1,92 @@
+package com.example.jciclient
+
+import androidx.lifecycle.ViewModelProvider
+import android.os.Bundle
+import androidx.fragment.app.Fragment
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
+import com.example.jciclient.databinding.FileItemBinding
+import com.example.jciclient.databinding.FolderFragmentBinding
+
+class FolderFragment : BaseFragment() {
+
+    private val viewModel by viewModels<FolderViewModel>()
+
+    private val args by navArgs<FolderFragmentArgs>()
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        return FolderFragmentBinding.inflate(inflater).also { binding ->
+            binding.viewModel = viewModel
+            binding.lifecycleOwner = viewLifecycleOwner
+
+            binding.recyclerView.layoutManager = LinearLayoutManager(context)
+            binding.recyclerView.adapter = FileAdapter { item ->
+                logger.info("onClick $item")
+                if (item.directory) {
+                    findNavController().navigate(
+                        FolderFragmentDirections.actionFolderFragmentSelf(
+                            args.remoteId,
+                            item.path
+                        )
+                    )
+                } else {
+                    logger.info("is not folder.")
+                }
+            }.also { adapter ->
+                viewModel.items.observe(viewLifecycleOwner) { items ->
+                    adapter.submitList(items)
+                }
+            }
+        }.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        viewModel.getFiles(args.remoteId, args.path)
+    }
+
+    class FileAdapter(private val onClick: (item: FolderViewModel.FileItem) -> Unit) :
+        ListAdapter<FolderViewModel.FileItem, FileAdapter.ViewHolder>(object :
+            DiffUtil.ItemCallback<FolderViewModel.FileItem>() {
+            override fun areItemsTheSame(
+                oldItem: FolderViewModel.FileItem,
+                newItem: FolderViewModel.FileItem
+            ): Boolean {
+                return oldItem.name == newItem.name
+            }
+
+            override fun areContentsTheSame(
+                oldItem: FolderViewModel.FileItem,
+                newItem: FolderViewModel.FileItem
+            ): Boolean {
+                return oldItem == newItem
+            }
+        }) {
+        class ViewHolder(val binding: FileItemBinding) : RecyclerView.ViewHolder(binding.root)
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            return ViewHolder(FileItemBinding.inflate(LayoutInflater.from(parent.context))).also { holder ->
+                holder.itemView.setOnClickListener {
+                    holder.binding.viewModel?.let {
+                        onClick(it)
+                    }
+                }
+            }
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            holder.binding.viewModel = getItem(position)
+        }
+    }
+}

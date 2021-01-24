@@ -27,9 +27,14 @@ class HomeFragment : BaseFragment() {
             binding.lifecycleOwner = viewLifecycleOwner
 
             binding.recyclerView.layoutManager = LinearLayoutManager(context)
-            binding.recyclerView.adapter = RemoteAdapter {
-                logger.info("onClick $it")
-                viewModel.checkRemote(it)
+            binding.recyclerView.adapter = RemoteAdapter { entity ->
+                logger.info("onClick $entity")
+                findNavController().navigate(
+                    HomeFragmentDirections.actionHomeFragmentToFolderFragment(
+                        entity.id,
+                        "smb://${entity.domainName}/${entity.shareName}/"
+                    )
+                )
             }.also { adapter ->
                 viewModel.items.observe(viewLifecycleOwner) { items ->
                     logger.info("items.changed.")

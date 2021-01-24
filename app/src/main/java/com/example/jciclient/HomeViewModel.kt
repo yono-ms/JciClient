@@ -15,31 +15,4 @@ class HomeViewModel : BaseViewModel() {
         logger.info("read items.")
         App.db.remoteDao().getAllLiveData()
     }
-
-    fun checkRemote(entity: RemoteEntity) {
-        logger.info("checkRemote ${entity.domainName} ${entity.shareName} ${entity.accountName} ${entity.accountPassword}")
-        viewModelScope.launch(Dispatchers.IO) {
-            kotlin.runCatching {
-                val credentials = NtlmPasswordAuthenticator(
-                    entity.domainName,
-                    entity.accountName,
-                    entity.accountPassword
-                )
-                val baseContext = BaseContext(PropertyConfiguration(Properties().apply {
-                    setProperty("jcifs.smb.client.minVersion", "SMB202")
-                    setProperty("jcifs.smb.client.maxVersion", "SMB300")
-                }))
-                val cifsContext = baseContext.withCredentials(credentials)
-                val smbFile = SmbFile("smb://${entity.domainName}/${entity.shareName}", cifsContext)
-                val list = smbFile.list()
-                smbFile.close()
-                list.forEach {
-                    logger.debug(it)
-                }
-            }.onFailure {
-                logger.error("checkRemote", it)
-                throwable.postValue(it)
-            }
-        }
-    }
 }

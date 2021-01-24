@@ -9,10 +9,13 @@
         android:id="@+id/homeFragment"
         android:name="com.example.jciclient.HomeFragment"
         android:label="home_fragment"
-        tools:layout="@layout/home_fragment" >
+        tools:layout="@layout/home_fragment">
         <action
             android:id="@+id/action_homeFragment_to_addRemoteFragment"
             app:destination="@id/addRemoteFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_folderFragment"
+            app:destination="@id/folderFragment" />
     </fragment>
     <dialog
         android:id="@+id/messageDialogFragment"
@@ -30,4 +33,19 @@
         android:name="com.example.jciclient.AddRemoteFragment"
         android:label="AddRemoteFragment"
         tools:layout="@layout/add_remote_fragment" />
+    <fragment
+        android:id="@+id/folderFragment"
+        android:name="com.example.jciclient.FolderFragment"
+        android:label="FolderFragment"
+        tools:layout="@layout/folder_fragment" >
+        <argument
+            android:name="remoteId"
+            app:argType="integer" />
+        <argument
+            android:name="path"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_folderFragment_self"
+            app:destination="@id/folderFragment" />
+    </fragment>
 </navigation>
