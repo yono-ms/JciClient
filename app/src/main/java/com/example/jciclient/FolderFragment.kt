@@ -9,10 +9,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.ListAdapter
-import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.*
 import com.example.jciclient.databinding.FileItemBinding
 import com.example.jciclient.databinding.FolderFragmentBinding
 
@@ -30,6 +27,12 @@ class FolderFragment : BaseFragment() {
             binding.viewModel = viewModel
             binding.lifecycleOwner = viewLifecycleOwner
 
+            binding.recyclerView.addItemDecoration(
+                DividerItemDecoration(
+                    context,
+                    DividerItemDecoration.VERTICAL
+                )
+            )
             binding.recyclerView.layoutManager = LinearLayoutManager(context)
             binding.recyclerView.adapter = FileAdapter { item ->
                 logger.info("onClick $item")
