@@ -40,12 +40,14 @@ class FolderViewModel : BaseViewModel() {
                     val fileItems = mutableListOf<FileItem>()
                     smbFile.list().forEach { child ->
                         SmbFile("${smbFile.path}$child", cifsContext).let {
-                            logger.debug("${it.name} isFile=${it.isFile} isDirectory=${it.isDirectory}")
-                            fileItems.add(FileItem.from(it))
+                            logger.debug("${it.name} isFile=${it.isFile} isDirectory=${it.isDirectory} isHidden=${it.isHidden}")
+                            if (!it.isHidden) {
+                                fileItems.add(FileItem.from(it))
+                            }
                             it.close()
                         }
                     }
-                    items.postValue(fileItems)
+                    items.postValue(fileItems.sortedWith(compareBy({ it.file }, { it.name })))
                     smbFile.close()
                 } ?: logger.error("entity is null.")
             }.onFailure {
@@ -62,6 +64,7 @@ class FolderViewModel : BaseViewModel() {
         val name: String,
         val contentType: String?,
         val directory: Boolean,
+        val file: Boolean,
     ) {
         companion object {
             fun from(smbFile: SmbFile): FileItem {
@@ -69,7 +72,8 @@ class FolderViewModel : BaseViewModel() {
                     smbFile.path,
                     smbFile.name,
                     smbFile.contentType,
-                    smbFile.isDirectory
+                    smbFile.isDirectory,
+                    smbFile.isFile
                 )
             }
         }
