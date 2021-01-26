@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -57,6 +58,14 @@ class FolderFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel.getFiles(args.remoteId, args.path)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val words = args.path.split("/")
+        val index = words.size - 2
+        val title = words.getOrNull(index)
+        (activity as? AppCompatActivity)?.supportActionBar?.title = title
     }
 
     class FileAdapter(private val onClick: (item: FolderViewModel.FileItem) -> Unit) :

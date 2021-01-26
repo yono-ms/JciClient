@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">JciClient</string>
+    <string name="title_home">Remotes</string>
+    <string name="title_remote">Remote Detail</string>
     <string name="hint_remote_name">remote name</string>
     <string name="hint_domain_name">domain name</string>
     <string name="hint_share_name">share name</string>
