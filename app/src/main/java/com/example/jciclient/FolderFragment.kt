@@ -1,11 +1,10 @@
 package com.example.jciclient
 
-import androidx.lifecycle.ViewModelProvider
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.MimeTypeMap
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -13,6 +12,7 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.*
 import com.example.jciclient.databinding.FileItemBinding
 import com.example.jciclient.databinding.FolderFragmentBinding
+import java.io.File
 
 class FolderFragment : BaseFragment() {
 
@@ -45,7 +45,11 @@ class FolderFragment : BaseFragment() {
                         )
                     )
                 } else {
-                    logger.info("is not folder.")
+                    logger.info("is not folder. ${item.contentType}")
+                    val ext = File(item.name).extension
+                    MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext)?.let { mimeType ->
+                        logger.info("mimeType=$mimeType")
+                    }
                 }
             }.also { adapter ->
                 viewModel.items.observe(viewLifecycleOwner) { items ->

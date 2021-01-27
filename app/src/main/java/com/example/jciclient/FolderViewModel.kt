@@ -1,7 +1,6 @@
 package com.example.jciclient
 
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import jcifs.config.PropertyConfiguration
 import jcifs.context.BaseContext
