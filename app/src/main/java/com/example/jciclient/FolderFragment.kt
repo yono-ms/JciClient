@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.webkit.MimeTypeMap
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -49,12 +50,44 @@ class FolderFragment : BaseFragment() {
                     val ext = File(item.name).extension
                     MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext)?.let { mimeType ->
                         logger.info("mimeType=$mimeType")
+                        when (mimeType) {
+                            "application/zip",
+                            "image/jpeg" -> {
+                                viewModel.downloadFile(
+                                    args.remoteId,
+                                    item.path,
+                                    requireContext().cacheDir.path
+                                )
+                            }
+                            else -> {
+                                logger.info("no action.")
+                            }
+                        }
                     }
                 }
             }.also { adapter ->
                 viewModel.items.observe(viewLifecycleOwner) { items ->
                     adapter.submitList(items)
                 }
+            }
+
+            viewModel.filePath.observe(viewLifecycleOwner) {
+                it?.let {
+                    logger.info("filePath=$it")
+                    viewModel.filePath.value = null
+                }
+            }
+
+            viewModel.throwable.observe(viewLifecycleOwner) {
+                findNavController().navigate(
+                    HomeFragmentDirections.actionGlobalMessageDialogFragment(
+                        it.message.toString()
+                    )
+                )
+            }
+
+            viewModel.progress.observe(viewLifecycleOwner) {
+                binding.progressBar.isVisible = it
             }
         }.root
     }

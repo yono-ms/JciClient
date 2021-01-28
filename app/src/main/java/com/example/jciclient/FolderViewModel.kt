@@ -8,14 +8,56 @@ import jcifs.smb.NtlmPasswordAuthenticator
 import jcifs.smb.SmbFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.io.File
 import java.util.*
 
 class FolderViewModel : BaseViewModel() {
+
+    fun downloadFile(id: Int, path: String, dir: String) {
+        logger.info("downloadFile id=$id path=$path")
+        viewModelScope.launch(Dispatchers.IO) {
+            kotlin.runCatching {
+                progress.postValue(true)
+                val credentials = App.db.remoteDao().get(id)?.let { entity ->
+                    NtlmPasswordAuthenticator(
+                        entity.domainName,
+                        entity.accountName,
+                        entity.accountPassword
+                    )
+                }
+                val baseContext = BaseContext(PropertyConfiguration(Properties().apply {
+                    setProperty("jcifs.smb.client.minVersion", "SMB202")
+                    setProperty("jcifs.smb.client.maxVersion", "SMB300")
+                }))
+                val cifsContext = baseContext.withCredentials(credentials)
+                val smbFile = SmbFile(path, cifsContext)
+                val destFile = File(dir, smbFile.name)
+                smbFile.inputStream.use { inputStream ->
+                    destFile.outputStream().use { outputStream ->
+                        logger.info("copy start.")
+                        val result = inputStream.copyTo(outputStream)
+                        logger.info("copy end. $result")
+                    }
+                }
+                destFile.path
+            }.onSuccess {
+                filePath.postValue(it)
+            }.onFailure {
+                logger.error("getFiles", it)
+                throwable.postValue(it)
+            }.also {
+                progress.postValue(false)
+            }
+        }
+    }
+
+    val filePath by lazy { MutableLiveData<String>() }
 
     fun getFiles(id: Int, path: String) {
         logger.info("getFiles id=$id path=$path")
         viewModelScope.launch(Dispatchers.IO) {
             kotlin.runCatching {
+                progress.postValue(true)
                 App.db.remoteDao().get(id)?.let { entity ->
                     val credentials = NtlmPasswordAuthenticator(
                         entity.domainName,
@@ -52,6 +94,8 @@ class FolderViewModel : BaseViewModel() {
             }.onFailure {
                 logger.error("getFiles", it)
                 throwable.postValue(it)
+            }.also {
+                progress.postValue(false)
             }
         }
     }

@@ -53,8 +53,6 @@ class HomeFragment : BaseFragment() {
                     )
                 )
             }
-
-            logger.warn("TODO : ${viewModel.items}")
         }.root
     }
 
