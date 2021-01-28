@@ -74,6 +74,11 @@ class FolderFragment : BaseFragment() {
             viewModel.filePath.observe(viewLifecycleOwner) {
                 it?.let {
                     logger.info("filePath=$it")
+                    findNavController().navigate(
+                        FolderFragmentDirections.actionFolderFragmentToImageViewerFragment(
+                            it
+                        )
+                    )
                     viewModel.filePath.value = null
                 }
             }

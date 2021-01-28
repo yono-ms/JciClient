@@ -37,7 +37,7 @@
         android:id="@+id/folderFragment"
         android:name="com.example.jciclient.FolderFragment"
         android:label="FolderFragment"
-        tools:layout="@layout/folder_fragment" >
+        tools:layout="@layout/folder_fragment">
         <argument
             android:name="remoteId"
             app:argType="integer" />
@@ -47,5 +47,17 @@
         <action
             android:id="@+id/action_folderFragment_self"
             app:destination="@id/folderFragment" />
+        <action
+            android:id="@+id/action_folderFragment_to_imageViewerFragment"
+            app:destination="@id/imageViewerFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/imageViewerFragment"
+        android:name="com.example.jciclient.ImageViewerFragment"
+        android:label="ImageViewerFragment"
+        tools:layout="@layout/image_viewer_fragment">
+        <argument
+            android:name="path"
+            app:argType="string" />
     </fragment>
 </navigation>
