@@ -14,7 +14,7 @@ interface RemoteDao {
     @Delete
     suspend fun delete(remoteEntity: RemoteEntity)
 
-    @Query("SELECT * FROM remote_entity")
+    @Query("SELECT * FROM remote_entity ORDER BY remote_name")
     fun getAllLiveData(): LiveData<List<RemoteEntity>>
 
     @Query("SELECT * FROM remote_entity WHERE id = :id")

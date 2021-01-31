@@ -11,15 +11,21 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.*
+import com.example.jciclient.database.FileEntity
 import com.example.jciclient.databinding.FileItemBinding
 import com.example.jciclient.databinding.FolderFragmentBinding
 import java.io.File
 
 class FolderFragment : BaseFragment() {
 
-    private val viewModel by viewModels<FolderViewModel>()
-
     private val args by navArgs<FolderFragmentArgs>()
+
+    private val viewModel by viewModels<FolderViewModel> {
+        FolderViewModel.Factory(
+            args.remoteId,
+            args.path
+        )
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -54,7 +60,6 @@ class FolderFragment : BaseFragment() {
                             "application/zip",
                             "image/jpeg" -> {
                                 viewModel.downloadFile(
-                                    args.remoteId,
                                     item.path,
                                     requireContext().cacheDir.path
                                 )
@@ -99,7 +104,9 @@ class FolderFragment : BaseFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.getFiles(args.remoteId, args.path)
+        if (savedInstanceState == null) {
+            viewModel.getFiles()
+        }
     }
 
     override fun onResume() {
@@ -110,19 +117,19 @@ class FolderFragment : BaseFragment() {
         (activity as? AppCompatActivity)?.supportActionBar?.title = title
     }
 
-    class FileAdapter(private val onClick: (item: FolderViewModel.FileItem) -> Unit) :
-        ListAdapter<FolderViewModel.FileItem, FileAdapter.ViewHolder>(object :
-            DiffUtil.ItemCallback<FolderViewModel.FileItem>() {
+    class FileAdapter(private val onClick: (item: FileEntity) -> Unit) :
+        ListAdapter<FileEntity, FileAdapter.ViewHolder>(object :
+            DiffUtil.ItemCallback<FileEntity>() {
             override fun areItemsTheSame(
-                oldItem: FolderViewModel.FileItem,
-                newItem: FolderViewModel.FileItem
+                oldItem: FileEntity,
+                newItem: FileEntity
             ): Boolean {
                 return oldItem.name == newItem.name
             }
 
             override fun areContentsTheSame(
-                oldItem: FolderViewModel.FileItem,
-                newItem: FolderViewModel.FileItem
+                oldItem: FileEntity,
+                newItem: FileEntity
             ): Boolean {
                 return oldItem == newItem
             }

@@ -1,7 +1,10 @@
 package com.example.jciclient
 
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.jciclient.database.FileEntity
 import jcifs.config.PropertyConfiguration
 import jcifs.context.BaseContext
 import jcifs.smb.NtlmPasswordAuthenticator
@@ -11,14 +14,25 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.util.*
 
-class FolderViewModel : BaseViewModel() {
+class FolderViewModel(val remoteId: Int, val path: String) : BaseViewModel() {
 
-    fun downloadFile(id: Int, path: String, dir: String) {
-        logger.info("downloadFile id=$id path=$path")
+    class Factory(val remoteId: Int, val path: String) : ViewModelProvider.NewInstanceFactory() {
+        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+            @Suppress("UNCHECKED_CAST")
+            return FolderViewModel(remoteId, path) as T
+        }
+    }
+
+    val items by lazy { App.db.fileDao().getLiveData(path) }
+
+    val filePath by lazy { MutableLiveData<String>() }
+
+    fun downloadFile(targetPath: String, dir: String) {
+        logger.info("downloadFile id=$remoteId path=$targetPath")
         viewModelScope.launch(Dispatchers.IO) {
             kotlin.runCatching {
                 progress.postValue(true)
-                val credentials = App.db.remoteDao().get(id)?.let { entity ->
+                val credentials = App.db.remoteDao().get(remoteId)?.let { entity ->
                     NtlmPasswordAuthenticator(
                         entity.domainName,
                         entity.accountName,
@@ -30,7 +44,7 @@ class FolderViewModel : BaseViewModel() {
                     setProperty("jcifs.smb.client.maxVersion", "SMB300")
                 }))
                 val cifsContext = baseContext.withCredentials(credentials)
-                val smbFile = SmbFile(path, cifsContext)
+                val smbFile = SmbFile(targetPath, cifsContext)
                 val destFile = File(dir, smbFile.name)
                 smbFile.inputStream.use { inputStream ->
                     destFile.outputStream().use { outputStream ->
@@ -51,14 +65,16 @@ class FolderViewModel : BaseViewModel() {
         }
     }
 
-    val filePath by lazy { MutableLiveData<String>() }
-
-    fun getFiles(id: Int, path: String) {
-        logger.info("getFiles id=$id path=$path")
+    fun getFiles() {
+        logger.info("getFiles id=$remoteId path=$path")
         viewModelScope.launch(Dispatchers.IO) {
             kotlin.runCatching {
+                if (App.db.fileDao().get(path).isNotEmpty()) {
+                    logger.warn("already downloaded.")
+                    return@runCatching
+                }
                 progress.postValue(true)
-                App.db.remoteDao().get(id)?.let { entity ->
+                App.db.remoteDao().get(remoteId)?.let { entity ->
                     val credentials = NtlmPasswordAuthenticator(
                         entity.domainName,
                         entity.accountName,
@@ -78,17 +94,28 @@ class FolderViewModel : BaseViewModel() {
                         logger.debug("isFile=${isFile}")
                         logger.debug("isDirectory=${isDirectory}")
                     }
-                    val fileItems = mutableListOf<FileItem>()
-                    smbFile.list().forEach { child ->
-                        SmbFile("${smbFile.path}$child", cifsContext).let {
-                            logger.debug("${it.name} isFile=${it.isFile} isDirectory=${it.isDirectory} isHidden=${it.isHidden}")
-                            if (!it.isHidden) {
-                                fileItems.add(FileItem.from(it))
-                            }
-                            it.close()
+                    smbFile.listFiles { e ->
+                        e.isDirectory
+                    }.sortedBy { e ->
+                        e.name
+                    }.forEach { child ->
+                        logger.debug("${child.name} isFile=${child.isFile} isDirectory=${child.isDirectory} isHidden=${child.isHidden}")
+                        if (!child.isHidden) {
+                            App.db.fileDao().insertAll(FileEntity.from(child))
                         }
+                        child.close()
                     }
-                    items.postValue(fileItems.sortedWith(compareBy({ it.file }, { it.name })))
+                    smbFile.listFiles { e ->
+                        e.isFile
+                    }.sortedBy { e ->
+                        e.name
+                    }.forEach { child ->
+                        logger.debug("${child.name} isFile=${child.isFile} isDirectory=${child.isDirectory} isHidden=${child.isHidden}")
+                        if (!child.isHidden) {
+                            App.db.fileDao().insertAll(FileEntity.from(child))
+                        }
+                        child.close()
+                    }
                     smbFile.close()
                 } ?: logger.error("entity is null.")
             }.onFailure {
@@ -96,28 +123,6 @@ class FolderViewModel : BaseViewModel() {
                 throwable.postValue(it)
             }.also {
                 progress.postValue(false)
-            }
-        }
-    }
-
-    val items by lazy { MutableLiveData<List<FileItem>>() }
-
-    data class FileItem(
-        val path: String,
-        val name: String,
-        val contentType: String?,
-        val directory: Boolean,
-        val file: Boolean,
-    ) {
-        companion object {
-            fun from(smbFile: SmbFile): FileItem {
-                return FileItem(
-                    smbFile.path,
-                    smbFile.name,
-                    smbFile.contentType,
-                    smbFile.isDirectory,
-                    smbFile.isFile
-                )
             }
         }
     }

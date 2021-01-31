@@ -11,7 +11,7 @@
 
         <variable
             name="viewModel"
-            type="com.example.jciclient.FolderViewModel.FileItem" />
+            type="com.example.jciclient.database.FileEntity" />
     </data>
 
     <LinearLayout
