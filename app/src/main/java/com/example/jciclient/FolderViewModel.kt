@@ -14,16 +14,17 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.util.*
 
-class FolderViewModel(val remoteId: Int, val path: String) : BaseViewModel() {
+class FolderViewModel(private val remoteId: Int, val path: String) : BaseViewModel() {
 
-    class Factory(val remoteId: Int, val path: String) : ViewModelProvider.NewInstanceFactory() {
+    class Factory(private val remoteId: Int, val path: String) :
+        ViewModelProvider.NewInstanceFactory() {
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
             @Suppress("UNCHECKED_CAST")
             return FolderViewModel(remoteId, path) as T
         }
     }
 
-    val items by lazy { App.db.fileDao().getLiveData(path) }
+    val items by lazy { App.db.fileDao().getLiveData(remoteId, path) }
 
     val filePath by lazy { MutableLiveData<String>() }
 
@@ -69,10 +70,6 @@ class FolderViewModel(val remoteId: Int, val path: String) : BaseViewModel() {
         logger.info("getFiles id=$remoteId path=$path")
         viewModelScope.launch(Dispatchers.IO) {
             kotlin.runCatching {
-                if (App.db.fileDao().get(path).isNotEmpty()) {
-                    logger.warn("already downloaded.")
-                    return@runCatching
-                }
                 progress.postValue(true)
                 App.db.remoteDao().get(remoteId)?.let { entity ->
                     val credentials = NtlmPasswordAuthenticator(
@@ -93,6 +90,21 @@ class FolderViewModel(val remoteId: Int, val path: String) : BaseViewModel() {
                         logger.debug(name)
                         logger.debug("isFile=${isFile}")
                         logger.debug("isDirectory=${isDirectory}")
+                        logger.debug("lastModified=$lastModified")
+                    }
+                    App.db.fileDao().get(remoteId, path)?.lastModified?.let {
+                        val dbDate = Date(it)
+                        val smbDate = Date(smbFile.lastModified)
+                        logger.debug("smbDate=$smbDate")
+                        logger.debug(" dbDate=$dbDate")
+                        if (smbFile.lastModified != it) {
+                            logger.warn("folder update.")
+                            App.db.fileDao().deleteAllChildren(remoteId, path)
+                        }
+                    }
+                    if (App.db.fileDao().getChildrenCount(remoteId, path) > 0) {
+                        logger.warn("already download.")
+                        return@runCatching
                     }
                     smbFile.listFiles { e ->
                         e.isDirectory
@@ -101,7 +113,7 @@ class FolderViewModel(val remoteId: Int, val path: String) : BaseViewModel() {
                     }.forEach { child ->
                         logger.debug("${child.name} isFile=${child.isFile} isDirectory=${child.isDirectory} isHidden=${child.isHidden}")
                         if (!child.isHidden) {
-                            App.db.fileDao().insertAll(FileEntity.from(child))
+                            App.db.fileDao().insertAll(FileEntity.from(remoteId, child))
                         }
                         child.close()
                     }
@@ -112,7 +124,7 @@ class FolderViewModel(val remoteId: Int, val path: String) : BaseViewModel() {
                     }.forEach { child ->
                         logger.debug("${child.name} isFile=${child.isFile} isDirectory=${child.isDirectory} isHidden=${child.isHidden}")
                         if (!child.isHidden) {
-                            App.db.fileDao().insertAll(FileEntity.from(child))
+                            App.db.fileDao().insertAll(FileEntity.from(remoteId, child))
                         }
                         child.close()
                     }

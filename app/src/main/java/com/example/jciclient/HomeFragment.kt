@@ -56,10 +56,10 @@ class HomeFragment : BaseFragment() {
         }.root
     }
 
-    override fun onResume() {
-        super.onResume()
-        viewModel.deleteAllFiles()
-    }
+//    override fun onResume() {
+//        super.onResume()
+//        viewModel.deleteAllFiles()
+//    }
 
     class RemoteAdapter(private val onClick: (entity: RemoteEntity) -> Unit) :
         ListAdapter<RemoteEntity, RemoteAdapter.ViewHolder>(
