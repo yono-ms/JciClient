@@ -60,6 +60,9 @@
         android:label="ImageViewerFragment"
         tools:layout="@layout/image_viewer_fragment">
         <argument
+            android:name="remoteId"
+            app:argType="integer" />
+        <argument
             android:name="path"
             app:argType="string" />
     </fragment>

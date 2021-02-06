@@ -79,28 +79,25 @@ class FolderFragment : BaseFragment() {
             viewModel.filePath.observe(viewLifecycleOwner) {
                 it?.let { filePath ->
                     logger.info("filePath=$filePath")
-                    val ext = File(filePath).extension
-                    MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext)?.let { mimeType ->
-                        logger.info("mimeType=$mimeType")
-                        when (mimeType) {
-                            "image/jpeg" -> {
-                                findNavController().navigate(
-                                    FolderFragmentDirections.actionFolderFragmentToImageViewerFragment(
-                                        filePath
-                                    )
+                    when (ViewerType.fromPath(filePath)) {
+                        ViewerType.IMAGE -> {
+                            findNavController().navigate(
+                                FolderFragmentDirections.actionFolderFragmentToImageViewerFragment(
+                                    args.remoteId,
+                                    filePath
                                 )
-                            }
-                            "video/mp4" -> {
-                                findNavController().navigate(
-                                    FolderFragmentDirections.actionFolderFragmentToVideoViewerFragment(
-                                        args.remoteId,
-                                        filePath
-                                    )
+                            )
+                        }
+                        ViewerType.VIDEO -> {
+                            findNavController().navigate(
+                                FolderFragmentDirections.actionFolderFragmentToVideoViewerFragment(
+                                    args.remoteId,
+                                    filePath
                                 )
-                            }
-                            else -> {
-                                logger.error("no action.")
-                            }
+                            )
+                        }
+                        else -> {
+                            logger.error("no action.")
                         }
                     }
                     viewModel.filePath.value = null
