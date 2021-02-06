@@ -55,7 +55,9 @@ class VideoViewerFragment : BaseFragment(), IVLCVout.Callback, MediaPlayer.Event
                 surfaceHolder = binding.surfaceView.holder
                 surfaceHolder.setKeepScreenOn(true)
 
-                mediaPlayer = MediaPlayer(libVLC)
+                mediaPlayer = MediaPlayer(libVLC).apply {
+                    setEventListener(this@VideoViewerFragment)
+                }
 
                 // Setting up video output
                 mediaPlayer.vlcVout.apply {
@@ -150,7 +152,7 @@ class VideoViewerFragment : BaseFragment(), IVLCVout.Callback, MediaPlayer.Event
             MediaPlayer.Event.Playing -> logger.info("playing")
             MediaPlayer.Event.Paused -> logger.info("paused")
             MediaPlayer.Event.Stopped -> logger.info("stopped")
-            else -> logger.info("nothing")
+            else -> logger.trace("${event?.type}")
         }
     }
 }
