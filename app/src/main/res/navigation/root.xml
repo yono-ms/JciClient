@@ -50,12 +50,27 @@
         <action
             android:id="@+id/action_folderFragment_to_imageViewerFragment"
             app:destination="@id/imageViewerFragment" />
+        <action
+            android:id="@+id/action_folderFragment_to_videoViewerFragment"
+            app:destination="@id/videoViewerFragment" />
     </fragment>
     <fragment
         android:id="@+id/imageViewerFragment"
         android:name="com.example.jciclient.ImageViewerFragment"
         android:label="ImageViewerFragment"
         tools:layout="@layout/image_viewer_fragment">
+        <argument
+            android:name="path"
+            app:argType="string" />
+    </fragment>
+    <fragment
+        android:id="@+id/videoViewerFragment"
+        android:name="com.example.jciclient.VideoViewerFragment"
+        android:label="VideoViewerFragment"
+        tools:layout="@layout/video_viewer_fragment">
+        <argument
+            android:name="remoteId"
+            app:argType="integer" />
         <argument
             android:name="path"
             app:argType="string" />

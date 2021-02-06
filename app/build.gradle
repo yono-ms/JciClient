@@ -89,6 +89,9 @@ dependencies {
     // A pure-java CIFS/SMB client library
     implementation 'eu.agno3.jcifs:jcifs-ng:2.1.3'
 
+    // VLC
+    implementation 'de.mrmaffen:libvlc-android:2.1.12@aar'
+
     // Log
     implementation 'org.slf4j:slf4j-api:1.7.30'
     implementation 'com.github.tony19:logback-android:2.0.0'
