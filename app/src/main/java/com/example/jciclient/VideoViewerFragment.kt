@@ -2,6 +2,8 @@ package com.example.jciclient
 
 import android.os.Bundle
 import android.view.*
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -27,6 +29,16 @@ class VideoViewerFragment : BaseFragment(), IVLCVout.Callback, MediaPlayer.Event
     private lateinit var libVLC: LibVLC
     private lateinit var mediaPlayer: MediaPlayer
 
+    private val vlcOptions by lazy {
+        ArrayList<String>().apply {
+            add("--aout=opensles")
+            add("--http-reconnect")
+            add("--audio-time-stretch") // time stretching
+            add("--network-caching=1500")
+            add("-vvv") // verbosity
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -37,16 +49,7 @@ class VideoViewerFragment : BaseFragment(), IVLCVout.Callback, MediaPlayer.Event
             binding.lifecycleOwner = viewLifecycleOwner
 
             kotlin.runCatching {
-                libVLC = LibVLC(
-                    activity,
-                    ArrayList<String>().apply {
-                        add("--aout=opensles")
-                        add("--http-reconnect")
-                        add("--audio-time-stretch") // time stretching
-                        add("--network-caching=1500")
-                        add("-vvv") // verbosity
-                    }
-                )
+                libVLC = LibVLC(activity, vlcOptions)
 
                 surfaceView = binding.surfaceView
                 surfaceHolder = binding.surfaceView.holder
@@ -60,8 +63,6 @@ class VideoViewerFragment : BaseFragment(), IVLCVout.Callback, MediaPlayer.Event
                     addCallback(this@VideoViewerFragment)
                     attachViews()
                 }
-                mediaPlayer.media = Media(libVLC, args.path)
-                mediaPlayer.play()
             }.onSuccess {
                 logger.info("success.")
             }.onFailure {
@@ -72,7 +73,39 @@ class VideoViewerFragment : BaseFragment(), IVLCVout.Callback, MediaPlayer.Event
                     )
                 )
             }
+
+            viewModel.throwable.observe(viewLifecycleOwner) {
+                findNavController().navigate(
+                    HomeFragmentDirections.actionGlobalMessageDialogFragment(
+                        it.message.toString()
+                    )
+                )
+            }
+
+            viewModel.progress.observe(viewLifecycleOwner) {
+                binding.progressBar.isVisible = it
+            }
+
+            viewModel.videoUri.observe(viewLifecycleOwner) {
+                it?.let {
+                    mediaPlayer.media = Media(libVLC, it)
+                    mediaPlayer.play()
+                    viewModel.videoUri.value = null
+                }
+            }
+
+            if (savedInstanceState == null) {
+                viewModel.downloadFile(requireContext().cacheDir.path)
+            }
+
         }.root
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val words = args.path.split("/")
+        val title = words.lastOrNull()
+        (activity as? AppCompatActivity)?.supportActionBar?.title = title
     }
 
     private fun releasePlayer() {
