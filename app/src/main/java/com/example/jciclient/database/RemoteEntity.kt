@@ -3,6 +3,7 @@ package com.example.jciclient.database
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import jcifs.smb.NtlmPasswordAuthenticator
 
 @Entity(tableName = "remote_entity")
 data class RemoteEntity(
@@ -12,4 +13,12 @@ data class RemoteEntity(
     @ColumnInfo(name = "share_name") val shareName: String,
     @ColumnInfo(name = "account_name") val accountName: String,
     @ColumnInfo(name = "account_password") val accountPassword: String,
-)
+) {
+    fun credentials(): NtlmPasswordAuthenticator {
+        return NtlmPasswordAuthenticator(
+            domainName,
+            accountName,
+            accountPassword
+        )
+    }
+}

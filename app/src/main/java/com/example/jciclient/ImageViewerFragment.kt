@@ -1,6 +1,5 @@
 package com.example.jciclient
 
-import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,11 +8,15 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import com.example.jciclient.databinding.ImageViewerFragmentBinding
-import java.io.File
 
 class ImageViewerFragment : BaseFragment() {
 
-    val viewModel by viewModels<ImageViewerViewModel>()
+    val viewModel by viewModels<ImageViewerViewModel> {
+        ImageViewerViewModel.Factory(
+            args.remoteId,
+            args.path
+        )
+    }
 
     private val args by navArgs<ImageViewerFragmentArgs>()
 
@@ -25,7 +28,7 @@ class ImageViewerFragment : BaseFragment() {
             it.viewModel = viewModel
             it.lifecycleOwner = viewLifecycleOwner
 
-            it.imageView.setImageURI(Uri.fromFile(File(args.path)))
+            viewModel.downloadFile(requireContext().cacheDir.path)
         }.root
     }
 

@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.webkit.MimeTypeMap
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
@@ -14,7 +13,6 @@ import androidx.recyclerview.widget.*
 import com.example.jciclient.database.FileEntity
 import com.example.jciclient.databinding.FileItemBinding
 import com.example.jciclient.databinding.FolderFragmentBinding
-import java.io.File
 
 class FolderFragment : BaseFragment() {
 
@@ -53,38 +51,12 @@ class FolderFragment : BaseFragment() {
                     )
                 } else {
                     logger.info("is not folder. ${item.contentType}")
-                    val ext = File(item.name).extension
-                    MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext)?.let { mimeType ->
-                        logger.info("mimeType=$mimeType")
-                        when (mimeType) {
-                            "video/mp4",
-                            "image/jpeg" -> {
-                                viewModel.downloadFile(
-                                    item.path,
-                                    requireContext().cacheDir.path
-                                )
-                            }
-                            else -> {
-                                logger.info("no action.")
-                            }
-                        }
-                    }
-                }
-            }.also { adapter ->
-                viewModel.items.observe(viewLifecycleOwner) { items ->
-                    adapter.submitList(items)
-                }
-            }
-
-            viewModel.filePath.observe(viewLifecycleOwner) {
-                it?.let { filePath ->
-                    logger.info("filePath=$filePath")
-                    when (ViewerType.fromPath(filePath)) {
+                    when (ViewerType.fromPath(item.name)) {
                         ViewerType.IMAGE -> {
                             findNavController().navigate(
                                 FolderFragmentDirections.actionFolderFragmentToImageViewerFragment(
                                     args.remoteId,
-                                    filePath
+                                    item.path
                                 )
                             )
                         }
@@ -92,15 +64,18 @@ class FolderFragment : BaseFragment() {
                             findNavController().navigate(
                                 FolderFragmentDirections.actionFolderFragmentToVideoViewerFragment(
                                     args.remoteId,
-                                    filePath
+                                    item.path
                                 )
                             )
                         }
                         else -> {
-                            logger.error("no action.")
+                            logger.warn("no action.")
                         }
                     }
-                    viewModel.filePath.value = null
+                }
+            }.also { adapter ->
+                viewModel.items.observe(viewLifecycleOwner) { items ->
+                    adapter.submitList(items)
                 }
             }
 
