@@ -1,5 +1,6 @@
 package com.example.jciclient
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -67,6 +68,11 @@ class FolderFragment : BaseFragment() {
                                     item.path
                                 )
                             )
+                        }
+                        ViewerType.EXTERNAL -> {
+                            Intent(context, BridgeService::class.java).also {
+                                requireContext().startService(it)
+                            }
                         }
                         else -> {
                             logger.warn("no action.")

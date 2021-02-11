@@ -12,6 +12,9 @@ enum class ViewerType(
         setOf("image/jpeg", "image/png")
     ),
     VIDEO(
+        setOf("video/mpg")
+    ),
+    EXTERNAL(
         setOf("video/mp4")
     ),
     UNKNOWN(
@@ -29,6 +32,7 @@ enum class ViewerType(
                 when {
                     IMAGE.mimeTypes.contains(mimeType) -> IMAGE
                     VIDEO.mimeTypes.contains(mimeType) -> VIDEO
+                    EXTERNAL.mimeTypes.contains(mimeType) -> EXTERNAL
                     else -> UNKNOWN
                 }
             } ?: UNKNOWN

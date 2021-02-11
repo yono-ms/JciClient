@@ -13,4 +13,10 @@
     <string name="error_account_name">input account name</string>
     <string name="error_account_password">input account password</string>
     <string name="button_add_remote">add remote</string>
+    <string name="notification_channel_name">JciClient Foreground Service</string>
+    <string name="notification_channel_id">jciclient_foreground</string>
+    <string name="notification_channel_description">JciClient Foreground Service.</string>
+    <string name="notification_content_title">JciClient content title.</string>
+    <string name="notification_content_text">JciClient content text.</string>
+    <string name="notification_content_ticker">JciClient content ticker.</string>
 </resources>
