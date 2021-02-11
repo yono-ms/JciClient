@@ -92,6 +92,9 @@ dependencies {
     // VLC
     implementation 'de.mrmaffen:libvlc-android:2.1.12@aar'
 
+    // WebServer
+    implementation 'org.nanohttpd:nanohttpd-webserver:2.3.1'
+
     // Log
     implementation 'org.slf4j:slf4j-api:1.7.30'
     implementation 'com.github.tony19:logback-android:2.0.0'

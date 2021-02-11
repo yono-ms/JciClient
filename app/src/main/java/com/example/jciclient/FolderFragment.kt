@@ -1,10 +1,12 @@
 package com.example.jciclient
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
@@ -24,6 +26,13 @@ class FolderFragment : BaseFragment() {
             args.remoteId,
             args.path
         )
+    }
+
+    private val startExternalViewer = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        logger.info("startExternalViewer ${it.resultCode}")
+        requireContext().stopService(Intent(context, BridgeService::class.java))
     }
 
     override fun onCreateView(
@@ -70,8 +79,19 @@ class FolderFragment : BaseFragment() {
                             )
                         }
                         ViewerType.EXTERNAL -> {
-                            Intent(context, BridgeService::class.java).also {
+                            val port = App.getPort()
+                            Intent(context, BridgeService::class.java).apply {
+                                putExtra(BridgeService.Key.REMOTE_ID.name, args.remoteId)
+                                putExtra(BridgeService.Key.PATH.name, item.path)
+                                putExtra(BridgeService.Key.PORT.name, port)
+                            }.also {
                                 requireContext().startService(it)
+                            }
+
+                            val uriString = "http://localhost:$port/${item.name}"
+                            logger.debug("uriString=$uriString")
+                            Intent(Intent.ACTION_VIEW, Uri.parse(uriString)).also {
+                                startExternalViewer.launch(it)
                             }
                         }
                         else -> {

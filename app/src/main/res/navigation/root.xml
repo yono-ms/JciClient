@@ -28,6 +28,26 @@
     <action
         android:id="@+id/action_global_messageDialogFragment"
         app:destination="@id/messageDialogFragment" />
+    <dialog
+        android:id="@+id/yesNoDialogFragment"
+        android:name="com.example.jciclient.YesNoDialogFragment"
+        android:label="YesNoDialogFragment">
+        <argument
+            android:name="message"
+            app:argType="string" />
+        <argument
+            android:name="positive"
+            app:argType="string" />
+        <argument
+            android:name="negative"
+            app:argType="string" />
+        <argument
+            android:name="request"
+            app:argType="string" />
+    </dialog>
+    <action
+        android:id="@+id/action_global_yesNoDialogFragment"
+        app:destination="@id/yesNoDialogFragment" />
     <fragment
         android:id="@+id/addRemoteFragment"
         android:name="com.example.jciclient.AddRemoteFragment"
