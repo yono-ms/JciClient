@@ -1,6 +1,12 @@
 package com.example.jciclient
 
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
+import android.net.Uri
 import android.os.Bundle
+import android.os.IBinder
 import android.view.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
@@ -13,13 +19,12 @@ import org.videolan.libvlc.LibVLC
 import org.videolan.libvlc.Media
 import org.videolan.libvlc.MediaPlayer
 
-class VideoViewerFragment : BaseFragment(), IVLCVout.Callback, MediaPlayer.EventListener {
+class VideoViewerFragment : BaseFragment() {
 
     private val args by navArgs<VideoViewerFragmentArgs>()
 
     private val viewModel by viewModels<VideoViewerViewModel> {
         VideoViewerViewModel.Factory(
-            args.remoteId,
             args.path
         )
     }
@@ -36,6 +41,72 @@ class VideoViewerFragment : BaseFragment(), IVLCVout.Callback, MediaPlayer.Event
             add("--audio-time-stretch") // time stretching
             add("--network-caching=1500")
             add("-vvv") // verbosity
+        }
+    }
+
+    lateinit var binder: BridgeService.BridgeBinder
+
+    private val serviceConnection = object : ServiceConnection {
+        override fun onServiceConnected(
+            name: ComponentName?,
+            service: IBinder?
+        ) {
+            logger.info("onServiceConnected $name")
+            binder = service as BridgeService.BridgeBinder
+            binder.onStartWebServer = {
+                mediaPlayer.media = Media(libVLC, Uri.parse(binder.uriString))
+                mediaPlayer.play()
+            }
+            binder.startWebServer()
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            logger.info("onServiceConnected $name")
+        }
+    }
+
+    private val vOutCallback = object : IVLCVout.Callback {
+        override fun onSurfacesCreated(vlcVout: IVLCVout?) {
+            val sw = surfaceView.width
+            val sh = surfaceView.height
+
+            if (sw * sh == 0) {
+                logger.error("Invalid surface size")
+                return
+            }
+
+            mediaPlayer.vlcVout.setWindowSize(sw, sh)
+            //mediaPlayer.aspectRatio = "4:3"
+            mediaPlayer.scale = 0f
+
+        }
+
+        override fun onSurfacesDestroyed(vlcVout: IVLCVout?) {
+            releasePlayer()
+            binder.stopWebServer()
+        }
+    }
+
+    private val mediaPlayerEventLister = MediaPlayer.EventListener { event ->
+        when (event?.type) {
+            MediaPlayer.Event.EndReached -> {
+                logger.info("EndReached")
+                releasePlayer()
+                viewModel.playing.value = false
+            }
+            MediaPlayer.Event.Playing -> {
+                logger.info("Playing")
+                viewModel.playing.value = true
+            }
+            MediaPlayer.Event.Paused -> {
+                logger.info("Paused")
+                viewModel.playing.value = false
+            }
+            MediaPlayer.Event.Stopped -> {
+                logger.info("Stopped")
+                viewModel.playing.value = false
+            }
+            else -> logger.trace("${event?.type}")
         }
     }
 
@@ -56,15 +127,16 @@ class VideoViewerFragment : BaseFragment(), IVLCVout.Callback, MediaPlayer.Event
                 surfaceHolder.setKeepScreenOn(true)
 
                 mediaPlayer = MediaPlayer(libVLC).apply {
-                    setEventListener(this@VideoViewerFragment)
+                    setEventListener(mediaPlayerEventLister)
                 }
 
                 // Setting up video output
                 mediaPlayer.vlcVout.apply {
                     setVideoView(binding.surfaceView)
-                    addCallback(this@VideoViewerFragment)
+                    addCallback(vOutCallback)
                     attachViews()
                 }
+
             }.onSuccess {
                 logger.info("success.")
             }.onFailure {
@@ -74,6 +146,20 @@ class VideoViewerFragment : BaseFragment(), IVLCVout.Callback, MediaPlayer.Event
                         "${it.message}"
                     )
                 )
+            }
+
+            binding.surfaceView.setOnClickListener {
+                viewModel.toggleControlVisible()
+            }
+
+            binding.imageButtonPlay.setOnClickListener {
+                viewModel.playing.value?.let {
+                    if (it) {
+                        mediaPlayer.pause()
+                    } else {
+                        mediaPlayer.play()
+                    }
+                }
             }
 
             viewModel.throwable.observe(viewLifecycleOwner) {
@@ -88,19 +174,28 @@ class VideoViewerFragment : BaseFragment(), IVLCVout.Callback, MediaPlayer.Event
                 binding.progressBar.isVisible = it
             }
 
-            viewModel.videoUri.observe(viewLifecycleOwner) {
-                it?.let {
-                    mediaPlayer.media = Media(libVLC, it)
-                    mediaPlayer.play()
-                    viewModel.videoUri.value = null
-                }
-            }
-
-            if (savedInstanceState == null) {
-                viewModel.downloadFile(requireContext().cacheDir.path)
-            }
-
         }.root
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val port = App.getPort()
+        Intent(context, BridgeService::class.java).apply {
+            putExtra(BridgeService.Key.REMOTE_ID.name, args.remoteId)
+            putExtra(BridgeService.Key.PATH.name, args.path)
+            putExtra(BridgeService.Key.PORT.name, port)
+        }.also { intent ->
+            requireContext().bindService(
+                intent,
+                serviceConnection,
+                Context.BIND_AUTO_CREATE
+            )
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        requireContext().unbindService(serviceConnection)
     }
 
     override fun onResume() {
@@ -115,44 +210,13 @@ class VideoViewerFragment : BaseFragment(), IVLCVout.Callback, MediaPlayer.Event
         kotlin.runCatching {
             mediaPlayer.stop()
             mediaPlayer.vlcVout.let {
-                it.removeCallback(this)
+                it.removeCallback(vOutCallback)
                 it.detachViews()
             }
             mediaPlayer.release()
             libVLC.release()
         }.onFailure {
             logger.error("releasePlayer", it)
-        }
-    }
-
-    override fun onSurfacesCreated(vlcVout: IVLCVout?) {
-        val sw = surfaceView.width
-        val sh = surfaceView.height
-
-        if (sw * sh == 0) {
-            logger.error("Invalid surface size")
-            return
-        }
-
-        mediaPlayer.vlcVout.setWindowSize(sw, sh)
-        //mediaPlayer.aspectRatio = "4:3"
-        mediaPlayer.scale = 0f
-    }
-
-    override fun onSurfacesDestroyed(vlcVout: IVLCVout?) {
-        releasePlayer()
-    }
-
-    override fun onEvent(event: MediaPlayer.Event?) {
-        when (event?.type) {
-            MediaPlayer.Event.EndReached -> {
-                this.releasePlayer()
-            }
-
-            MediaPlayer.Event.Playing -> logger.info("playing")
-            MediaPlayer.Event.Paused -> logger.info("paused")
-            MediaPlayer.Event.Stopped -> logger.info("stopped")
-            else -> logger.trace("${event?.type}")
         }
     }
 }

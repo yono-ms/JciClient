@@ -12,7 +12,7 @@ enum class ViewerType(
         setOf("image/jpeg", "image/png")
     ),
     VIDEO(
-        setOf("video/mpg")
+        setOf("video/x-flv")
     ),
     EXTERNAL(
         setOf("video/mp4")
