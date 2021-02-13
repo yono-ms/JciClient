@@ -1,5 +1,6 @@
 package com.example.jciclient
 
+import android.view.View
 import android.widget.ImageView
 import androidx.databinding.BindingAdapter
 import com.google.android.material.textfield.TextInputLayout
@@ -15,5 +16,12 @@ fun setErrorMessage(view: TextInputLayout, errorMessage: Int?) {
 fun setSrcCompat(view: ImageView, src: Int?) {
     src?.let {
         view.setImageResource(it)
+    }
+}
+
+@BindingAdapter("android:visibility")
+fun setVisibility(view: View, visible: Boolean?) {
+    visible?.let {
+        view.visibility = if (it) View.VISIBLE else View.INVISIBLE
     }
 }

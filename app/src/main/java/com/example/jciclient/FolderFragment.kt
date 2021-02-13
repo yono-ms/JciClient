@@ -1,8 +1,12 @@
 package com.example.jciclient
 
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.net.Uri
 import android.os.Bundle
+import android.os.IBinder
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -31,8 +35,29 @@ class FolderFragment : BaseFragment() {
     private val startExternalViewer = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
-        logger.info("startExternalViewer ${it.resultCode}")
-        requireContext().stopService(Intent(context, BridgeService::class.java))
+        logger.info("startExternalViewer resultCode=${it.resultCode}")
+        requireContext().unbindService(serviceConnection)
+    }
+
+    private val onStartWebServer: () -> Unit = {
+        Intent(Intent.ACTION_VIEW, Uri.parse(binder.uriString)).also {
+            startExternalViewer.launch(it)
+        }
+    }
+
+    lateinit var binder: BridgeService.BridgeBinder
+
+    private val serviceConnection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            logger.info("onServiceConnected $name")
+            binder = service as BridgeService.BridgeBinder
+            binder.onStartWebServer = onStartWebServer
+            binder.startWebServer()
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            logger.info("onServiceConnected $name")
+        }
     }
 
     override fun onCreateView(
@@ -84,14 +109,12 @@ class FolderFragment : BaseFragment() {
                                 putExtra(BridgeService.Key.REMOTE_ID.name, args.remoteId)
                                 putExtra(BridgeService.Key.PATH.name, item.path)
                                 putExtra(BridgeService.Key.PORT.name, port)
-                            }.also {
-                                requireContext().startService(it)
-                            }
-
-                            val uriString = "http://localhost:$port/${item.name}"
-                            logger.debug("uriString=$uriString")
-                            Intent(Intent.ACTION_VIEW, Uri.parse(uriString)).also {
-                                startExternalViewer.launch(it)
+                            }.also { intent ->
+                                requireContext().bindService(
+                                    intent,
+                                    serviceConnection,
+                                    Context.BIND_AUTO_CREATE
+                                )
                             }
                         }
                         else -> {
