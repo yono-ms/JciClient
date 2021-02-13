@@ -179,11 +179,9 @@ class VideoViewerFragment : BaseFragment() {
 
     override fun onStart() {
         super.onStart()
-        val port = App.getPort()
         Intent(context, BridgeService::class.java).apply {
             putExtra(BridgeService.Key.REMOTE_ID.name, args.remoteId)
             putExtra(BridgeService.Key.PATH.name, args.path)
-            putExtra(BridgeService.Key.PORT.name, port)
         }.also { intent ->
             requireContext().bindService(
                 intent,
