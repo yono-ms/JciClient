@@ -3,7 +3,6 @@ package com.example.jciclient
 import android.app.Application
 import androidx.room.Room
 import com.example.jciclient.database.AppDatabase
-import java.net.Socket
 import java.util.*
 
 class App : Application() {
@@ -14,13 +13,6 @@ class App : Application() {
             Properties().apply {
                 setProperty("jcifs.smb.client.minVersion", "SMB202")
                 setProperty("jcifs.smb.client.maxVersion", "SMB300")
-            }
-        }
-
-        fun getPort(): Int {
-            return Socket().use {
-                it.bind(null)
-                it.localPort
             }
         }
     }

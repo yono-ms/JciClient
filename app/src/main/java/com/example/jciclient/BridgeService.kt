@@ -11,13 +11,13 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.net.Socket
 
 class BridgeService : Service() {
 
     enum class Key {
         REMOTE_ID,
         PATH,
-        PORT,
     }
 
     val logger: Logger by lazy { LoggerFactory.getLogger(javaClass.simpleName) }
@@ -27,10 +27,14 @@ class BridgeService : Service() {
     override fun onBind(intent: Intent): IBinder {
         logger.info("onBind")
         return intent.extras?.let { bundle ->
+            val port = Socket().use {
+                it.bind(null)
+                it.localPort
+            }
             BridgeBinder(
                 bundle.getInt(Key.REMOTE_ID.name),
                 bundle.getString(Key.PATH.name) ?: throw Throwable("no path."),
-                bundle.getInt(Key.PORT.name)
+                port
             )
         } ?: throw Throwable("no extras.")
     }

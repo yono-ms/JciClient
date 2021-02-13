@@ -104,11 +104,9 @@ class FolderFragment : BaseFragment() {
                             )
                         }
                         ViewerType.EXTERNAL -> {
-                            val port = App.getPort()
                             Intent(context, BridgeService::class.java).apply {
                                 putExtra(BridgeService.Key.REMOTE_ID.name, args.remoteId)
                                 putExtra(BridgeService.Key.PATH.name, item.path)
-                                putExtra(BridgeService.Key.PORT.name, port)
                             }.also { intent ->
                                 requireContext().bindService(
                                     intent,
