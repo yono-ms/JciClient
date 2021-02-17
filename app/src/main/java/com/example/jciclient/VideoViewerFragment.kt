@@ -1,12 +1,7 @@
 package com.example.jciclient
 
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
 import android.net.Uri
 import android.os.Bundle
-import android.os.IBinder
 import android.view.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
@@ -25,6 +20,7 @@ class VideoViewerFragment : BaseFragment() {
 
     private val viewModel by viewModels<VideoViewerViewModel> {
         VideoViewerViewModel.Factory(
+            args.remoteId,
             args.path
         )
     }
@@ -45,25 +41,6 @@ class VideoViewerFragment : BaseFragment() {
     }
 
     lateinit var binder: BridgeService.BridgeBinder
-
-    private val serviceConnection = object : ServiceConnection {
-        override fun onServiceConnected(
-            name: ComponentName?,
-            service: IBinder?
-        ) {
-            logger.info("onServiceConnected $name")
-            binder = service as BridgeService.BridgeBinder
-            binder.onStartWebServer = {
-                mediaPlayer.media = Media(libVLC, Uri.parse(binder.uriString))
-                mediaPlayer.play()
-            }
-            binder.startWebServer()
-        }
-
-        override fun onServiceDisconnected(name: ComponentName?) {
-            logger.info("onServiceConnected $name")
-        }
-    }
 
     private val vOutCallback = object : IVLCVout.Callback {
         override fun onSurfacesCreated(vlcVout: IVLCVout?) {
@@ -162,6 +139,11 @@ class VideoViewerFragment : BaseFragment() {
                 }
             }
 
+            viewModel.uriString.observe(viewLifecycleOwner) {
+                mediaPlayer.media = Media(libVLC, Uri.parse(it))
+                mediaPlayer.play()
+            }
+
             viewModel.throwable.observe(viewLifecycleOwner) {
                 findNavController().navigate(
                     HomeFragmentDirections.actionGlobalMessageDialogFragment(
@@ -177,23 +159,12 @@ class VideoViewerFragment : BaseFragment() {
         }.root
     }
 
-    override fun onStart() {
-        super.onStart()
-        Intent(context, BridgeService::class.java).apply {
-            putExtra(BridgeService.Key.REMOTE_ID.name, args.remoteId)
-            putExtra(BridgeService.Key.PATH.name, args.path)
-        }.also { intent ->
-            requireContext().bindService(
-                intent,
-                serviceConnection,
-                Context.BIND_AUTO_CREATE
-            )
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        logger.info("onViewCreated")
+        if (savedInstanceState == null) {
+            viewModel.startWebServer()
         }
-    }
-
-    override fun onStop() {
-        super.onStop()
-        requireContext().unbindService(serviceConnection)
     }
 
     override fun onResume() {
