@@ -8,14 +8,14 @@ import java.io.File
 enum class ViewerType(
     private val mimeTypes: Set<String>
 ) {
-    IMAGE(
-        setOf("image/jpeg", "image/png")
-    ),
-    VIDEO(
-        setOf("video/mp4", "video/x-flv")
-    ),
     EXTERNAL(
         setOf("video/mkv")
+    ),
+    IMAGE(
+        setOf("image/")
+    ),
+    VIDEO(
+        setOf("video/")
     ),
     UNKNOWN(
         setOf()
@@ -29,12 +29,14 @@ enum class ViewerType(
             val ext = File(path).extension
             return MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext)?.let { mimeType ->
                 logger.info("mimeType=$mimeType")
-                when {
-                    IMAGE.mimeTypes.contains(mimeType) -> IMAGE
-                    VIDEO.mimeTypes.contains(mimeType) -> VIDEO
-                    EXTERNAL.mimeTypes.contains(mimeType) -> EXTERNAL
-                    else -> UNKNOWN
+                values().forEach { viewerType ->
+                    viewerType.mimeTypes.forEach {
+                        if (mimeType.startsWith(it)) {
+                            return viewerType
+                        }
+                    }
                 }
+                return UNKNOWN
             } ?: UNKNOWN
         }
     }
