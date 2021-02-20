@@ -16,6 +16,9 @@
         <action
             android:id="@+id/action_homeFragment_to_folderFragment"
             app:destination="@id/folderFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_externalSettingFragment"
+            app:destination="@id/externalSettingFragment" />
     </fragment>
     <dialog
         android:id="@+id/messageDialogFragment"
@@ -98,4 +101,9 @@
             android:name="path"
             app:argType="string" />
     </fragment>
+    <fragment
+        android:id="@+id/externalSettingFragment"
+        android:name="com.example.jciclient.ExternalSettingFragment"
+        android:label="ExternalSettingFragment"
+        tools:layout="@layout/external_setting_fragment" />
 </navigation>

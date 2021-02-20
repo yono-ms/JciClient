@@ -7,12 +7,14 @@
     <string name="hint_share_name">share name</string>
     <string name="hint_account_name">account name</string>
     <string name="hint_account_password">account password</string>
+    <string name="hint_ext">file extension</string>
     <string name="error_remote_name">input remote name</string>
     <string name="error_domain_name">input domain name</string>
     <string name="error_share_name">input share name</string>
     <string name="error_account_name">input account name</string>
     <string name="error_account_password">input account password</string>
     <string name="button_add_remote">add remote</string>
+    <string name="button_add_extension">add extension</string>
     <string name="button_ok">OK</string>
     <string name="button_cancel">Cancel</string>
     <string name="dialog_message_delete_cache">Do you want to clear the cache?</string>
@@ -21,4 +23,5 @@
     <string name="notification_channel_description">JciClient Foreground Service.</string>
     <string name="notification_content_title">JciClient</string>
     <string name="notification_content_text">Foreground service start.</string>
+    <string name="menu_settings">settings</string>
 </resources>
