@@ -1,9 +1,7 @@
 package com.example.jciclient
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -77,6 +75,27 @@ class HomeFragment : BaseFragment() {
             logger.info("$requestKey $bundle")
             viewModel.deleteAllFiles()
         }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.menu_home, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.settings -> {
+                logger.info("onOptionsItemSelected $item")
+                findNavController().navigate(
+                    HomeFragmentDirections.actionHomeFragmentToExternalSettingFragment()
+                )
+            }
+        }
+        return true
     }
 
     class RemoteAdapter(

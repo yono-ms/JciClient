@@ -1,6 +1,7 @@
 package com.example.jciclient
 
 import android.webkit.MimeTypeMap
+import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
@@ -8,14 +9,14 @@ import java.io.File
 enum class ViewerType(
     private val mimeTypes: Set<String>
 ) {
-    EXTERNAL(
-        setOf("video/mkv")
-    ),
     IMAGE(
         setOf("image/")
     ),
     VIDEO(
         setOf("video/")
+    ),
+    EXTERNAL(
+        setOf()
     ),
     UNKNOWN(
         setOf()
@@ -27,6 +28,9 @@ enum class ViewerType(
 
         fun fromPath(path: String): ViewerType {
             val ext = File(path).extension
+            if (runBlocking { App.db.externalDao().getAll().any { e -> e.ext == ext } }) {
+                return EXTERNAL
+            }
             return MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext)?.let { mimeType ->
                 logger.info("mimeType=$mimeType")
                 values().forEach { viewerType ->
