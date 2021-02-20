@@ -20,6 +20,10 @@ class VideoViewerViewModel(private val remoteId: Int, private val path: String) 
         }
     }
 
+    companion object {
+        const val SEEK_BAR_MAX = 100
+    }
+
     val controlVisible by lazy { MutableLiveData(false) }
 
     val playing by lazy { MutableLiveData(false) }
@@ -28,9 +32,37 @@ class VideoViewerViewModel(private val remoteId: Int, private val path: String) 
         if (it) android.R.drawable.ic_media_pause else android.R.drawable.ic_media_play
     }
 
+    val position by lazy { MutableLiveData(0F) }
+
+    val seekBarProgress = Transformations.map(position) {
+        (it * SEEK_BAR_MAX).toInt()
+    }
+
+    val seekBarMax by lazy { MutableLiveData(SEEK_BAR_MAX) }
+
+    val time by lazy { MutableLiveData(0L) }
+
+    val timeString = Transformations.map(time) {
+        stringForTime(it)
+    }
+
+    val length by lazy { MutableLiveData(0L) }
+
+    val lengthString = Transformations.map(length) {
+        stringForTime(it)
+    }
+
     val fileName by lazy { MutableLiveData(path.split('/').last()) }
 
     val uriString by lazy { MutableLiveData<String>() }
+
+    private fun stringForTime(time: Long): String {
+        val total = time / 1000
+        val sec = total % 60
+        val min = (total / 60) % 60
+        val hour = total / (60 * 60)
+        return "%02d:%02d:%02d".format(hour, min, sec)
+    }
 
     fun toggleControlVisible() {
         controlVisible.value?.let {

@@ -3,6 +3,7 @@ package com.example.jciclient
 import android.net.Uri
 import android.os.Bundle
 import android.view.*
+import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
@@ -68,8 +69,8 @@ class VideoViewerFragment : BaseFragment() {
         when (event?.type) {
             MediaPlayer.Event.EndReached -> {
                 logger.info("EndReached")
-                releasePlayer()
                 viewModel.playing.value = false
+                mediaPlayer.stop()
             }
             MediaPlayer.Event.Playing -> {
                 logger.info("Playing")
@@ -82,6 +83,15 @@ class VideoViewerFragment : BaseFragment() {
             MediaPlayer.Event.Stopped -> {
                 logger.info("Stopped")
                 viewModel.playing.value = false
+            }
+            MediaPlayer.Event.PositionChanged -> {
+                logger.trace("PositionChanged ${mediaPlayer.position}")
+                viewModel.position.value = mediaPlayer.position
+            }
+            MediaPlayer.Event.TimeChanged -> {
+                logger.trace("TimeChanged ${mediaPlayer.time} ${mediaPlayer.length}")
+                viewModel.time.value = mediaPlayer.time
+                viewModel.length.value = mediaPlayer.length
             }
             else -> logger.trace("${event?.type}")
         }
@@ -138,6 +148,27 @@ class VideoViewerFragment : BaseFragment() {
                     }
                 }
             }
+
+            binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(
+                    seekBar: SeekBar?,
+                    progress: Int,
+                    fromUser: Boolean
+                ) {
+                    if (fromUser) {
+                        val position = progress.toFloat() / VideoViewerViewModel.SEEK_BAR_MAX
+                        mediaPlayer.position = position
+                    }
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                    mediaPlayer.pause()
+                }
+
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                    mediaPlayer.play()
+                }
+            })
 
             viewModel.uriString.observe(viewLifecycleOwner) {
                 mediaPlayer.media = Media(libVLC, Uri.parse(it))
