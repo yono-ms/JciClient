@@ -39,6 +39,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
+            android:background="@android:color/transparent"
             android:contentDescription="@null"
             android:visibility="@{viewModel.controlVisible}"
             app:layout_constraintBottom_toTopOf="@+id/seekBar"
@@ -47,6 +48,19 @@
             app:srcCompat="@{viewModel.playButtonResId}"
             tools:srcCompat="@android:drawable/ic_media_play"
             tools:visibility="visible" />
+
+        <ImageButton
+            android:id="@+id/imageButtonRotate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:contentDescription="@null"
+            android:visibility="@{viewModel.controlVisible}"
+            app:layout_constraintBottom_toBottomOf="@+id/imageButtonPlay"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/imageButtonPlay"
+            app:layout_constraintTop_toTopOf="@+id/imageButtonPlay"
+            app:srcCompat="@android:drawable/ic_menu_always_landscape_portrait" />
 
         <SeekBar
             android:id="@+id/seekBar"

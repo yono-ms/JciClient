@@ -41,10 +41,9 @@ class VideoViewerFragment : BaseFragment() {
         }
     }
 
-    lateinit var binder: BridgeService.BridgeBinder
-
     private val vOutCallback = object : IVLCVout.Callback {
         override fun onSurfacesCreated(vlcVout: IVLCVout?) {
+            logger.info("onSurfacesCreated")
             val sw = surfaceView.width
             val sh = surfaceView.height
 
@@ -61,7 +60,6 @@ class VideoViewerFragment : BaseFragment() {
 
         override fun onSurfacesDestroyed(vlcVout: IVLCVout?) {
             releasePlayer()
-            binder.stopWebServer()
         }
     }
 
@@ -147,6 +145,10 @@ class VideoViewerFragment : BaseFragment() {
                         mediaPlayer.play()
                     }
                 }
+            }
+
+            binding.imageButtonRotate.setOnClickListener {
+//                surfaceView.rotation = 90F
             }
 
             binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
