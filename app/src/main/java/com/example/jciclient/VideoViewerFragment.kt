@@ -1,8 +1,10 @@
 package com.example.jciclient
 
+import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Bundle
 import android.view.*
+import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
@@ -40,10 +42,9 @@ class VideoViewerFragment : BaseFragment() {
         }
     }
 
-    lateinit var binder: BridgeService.BridgeBinder
-
     private val vOutCallback = object : IVLCVout.Callback {
         override fun onSurfacesCreated(vlcVout: IVLCVout?) {
+            logger.info("onSurfacesCreated")
             val sw = surfaceView.width
             val sh = surfaceView.height
 
@@ -60,7 +61,6 @@ class VideoViewerFragment : BaseFragment() {
 
         override fun onSurfacesDestroyed(vlcVout: IVLCVout?) {
             releasePlayer()
-            binder.stopWebServer()
         }
     }
 
@@ -68,8 +68,8 @@ class VideoViewerFragment : BaseFragment() {
         when (event?.type) {
             MediaPlayer.Event.EndReached -> {
                 logger.info("EndReached")
-                releasePlayer()
                 viewModel.playing.value = false
+                mediaPlayer.stop()
             }
             MediaPlayer.Event.Playing -> {
                 logger.info("Playing")
@@ -82,6 +82,15 @@ class VideoViewerFragment : BaseFragment() {
             MediaPlayer.Event.Stopped -> {
                 logger.info("Stopped")
                 viewModel.playing.value = false
+            }
+            MediaPlayer.Event.PositionChanged -> {
+                logger.trace("PositionChanged ${mediaPlayer.position}")
+                viewModel.position.value = mediaPlayer.position
+            }
+            MediaPlayer.Event.TimeChanged -> {
+                logger.trace("TimeChanged ${mediaPlayer.time} ${mediaPlayer.length}")
+                viewModel.time.value = mediaPlayer.time
+                viewModel.length.value = mediaPlayer.length
             }
             else -> logger.trace("${event?.type}")
         }
@@ -96,34 +105,9 @@ class VideoViewerFragment : BaseFragment() {
             binding.viewModel = viewModel
             binding.lifecycleOwner = viewLifecycleOwner
 
-            kotlin.runCatching {
-                libVLC = LibVLC(activity, vlcOptions)
-
-                surfaceView = binding.surfaceView
-                surfaceHolder = binding.surfaceView.holder
-                surfaceHolder.setKeepScreenOn(true)
-
-                mediaPlayer = MediaPlayer(libVLC).apply {
-                    setEventListener(mediaPlayerEventLister)
-                }
-
-                // Setting up video output
-                mediaPlayer.vlcVout.apply {
-                    setVideoView(binding.surfaceView)
-                    addCallback(vOutCallback)
-                    attachViews()
-                }
-
-            }.onSuccess {
-                logger.info("success.")
-            }.onFailure {
-                logger.error("onCreateView", it)
-                findNavController().navigate(
-                    VideoViewerFragmentDirections.actionGlobalMessageDialogFragment(
-                        "${it.message}"
-                    )
-                )
-            }
+            surfaceView = binding.surfaceView
+            surfaceHolder = binding.surfaceView.holder
+            surfaceHolder.setKeepScreenOn(true)
 
             binding.surfaceView.setOnClickListener {
                 viewModel.toggleControlVisible()
@@ -139,7 +123,41 @@ class VideoViewerFragment : BaseFragment() {
                 }
             }
 
+            binding.imageButtonRotate.setOnClickListener {
+                activity?.requestedOrientation?.let { orientation ->
+                    activity?.requestedOrientation = when (orientation) {
+                        ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT
+                        ActivityInfo.SCREEN_ORIENTATION_PORTRAIT -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                        ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT -> ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
+                        ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                        else -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                    }
+                }
+            }
+
+            binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(
+                    seekBar: SeekBar?,
+                    progress: Int,
+                    fromUser: Boolean
+                ) {
+                    if (fromUser) {
+                        val position = progress.toFloat() / VideoViewerViewModel.SEEK_BAR_MAX
+                        mediaPlayer.position = position
+                    }
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                    mediaPlayer.pause()
+                }
+
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                    mediaPlayer.play()
+                }
+            })
+
             viewModel.uriString.observe(viewLifecycleOwner) {
+                setupPlayer()
                 mediaPlayer.media = Media(libVLC, Uri.parse(it))
                 mediaPlayer.play()
             }
@@ -172,6 +190,33 @@ class VideoViewerFragment : BaseFragment() {
         val words = args.path.split("/")
         val title = words.lastOrNull()
         (activity as? AppCompatActivity)?.supportActionBar?.title = title
+    }
+
+    private fun setupPlayer() {
+        kotlin.runCatching {
+            libVLC = LibVLC(activity, vlcOptions)
+
+            mediaPlayer = MediaPlayer(libVLC).apply {
+                setEventListener(mediaPlayerEventLister)
+            }
+
+            // Setting up video output
+            mediaPlayer.vlcVout.apply {
+                setVideoView(surfaceView)
+                addCallback(vOutCallback)
+                attachViews()
+            }
+
+        }.onSuccess {
+            logger.info("success.")
+        }.onFailure {
+            logger.error("onCreateView", it)
+            findNavController().navigate(
+                VideoViewerFragmentDirections.actionGlobalMessageDialogFragment(
+                    "${it.message}"
+                )
+            )
+        }
     }
 
     private fun releasePlayer() {
