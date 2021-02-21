@@ -133,6 +133,10 @@ class VideoViewerFragment : BaseFragment() {
                         else -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
                     }
                 }
+                viewModel.rotation.value = when (activity?.requestedOrientation) {
+                    ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT, ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE -> 180F
+                    else -> 0F
+                }
             }
 
             binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
