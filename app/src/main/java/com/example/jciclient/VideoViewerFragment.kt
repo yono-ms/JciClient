@@ -1,5 +1,6 @@
 package com.example.jciclient
 
+import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Bundle
 import android.view.*
@@ -104,34 +105,9 @@ class VideoViewerFragment : BaseFragment() {
             binding.viewModel = viewModel
             binding.lifecycleOwner = viewLifecycleOwner
 
-            kotlin.runCatching {
-                libVLC = LibVLC(activity, vlcOptions)
-
-                surfaceView = binding.surfaceView
-                surfaceHolder = binding.surfaceView.holder
-                surfaceHolder.setKeepScreenOn(true)
-
-                mediaPlayer = MediaPlayer(libVLC).apply {
-                    setEventListener(mediaPlayerEventLister)
-                }
-
-                // Setting up video output
-                mediaPlayer.vlcVout.apply {
-                    setVideoView(binding.surfaceView)
-                    addCallback(vOutCallback)
-                    attachViews()
-                }
-
-            }.onSuccess {
-                logger.info("success.")
-            }.onFailure {
-                logger.error("onCreateView", it)
-                findNavController().navigate(
-                    VideoViewerFragmentDirections.actionGlobalMessageDialogFragment(
-                        "${it.message}"
-                    )
-                )
-            }
+            surfaceView = binding.surfaceView
+            surfaceHolder = binding.surfaceView.holder
+            surfaceHolder.setKeepScreenOn(true)
 
             binding.surfaceView.setOnClickListener {
                 viewModel.toggleControlVisible()
@@ -148,7 +124,15 @@ class VideoViewerFragment : BaseFragment() {
             }
 
             binding.imageButtonRotate.setOnClickListener {
-//                surfaceView.rotation = 90F
+                activity?.requestedOrientation?.let { orientation ->
+                    activity?.requestedOrientation = when (orientation) {
+                        ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT
+                        ActivityInfo.SCREEN_ORIENTATION_PORTRAIT -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                        ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT -> ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
+                        ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                        else -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                    }
+                }
             }
 
             binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -173,6 +157,7 @@ class VideoViewerFragment : BaseFragment() {
             })
 
             viewModel.uriString.observe(viewLifecycleOwner) {
+                setupPlayer()
                 mediaPlayer.media = Media(libVLC, Uri.parse(it))
                 mediaPlayer.play()
             }
@@ -205,6 +190,33 @@ class VideoViewerFragment : BaseFragment() {
         val words = args.path.split("/")
         val title = words.lastOrNull()
         (activity as? AppCompatActivity)?.supportActionBar?.title = title
+    }
+
+    private fun setupPlayer() {
+        kotlin.runCatching {
+            libVLC = LibVLC(activity, vlcOptions)
+
+            mediaPlayer = MediaPlayer(libVLC).apply {
+                setEventListener(mediaPlayerEventLister)
+            }
+
+            // Setting up video output
+            mediaPlayer.vlcVout.apply {
+                setVideoView(surfaceView)
+                addCallback(vOutCallback)
+                attachViews()
+            }
+
+        }.onSuccess {
+            logger.info("success.")
+        }.onFailure {
+            logger.error("onCreateView", it)
+            findNavController().navigate(
+                VideoViewerFragmentDirections.actionGlobalMessageDialogFragment(
+                    "${it.message}"
+                )
+            )
+        }
     }
 
     private fun releasePlayer() {

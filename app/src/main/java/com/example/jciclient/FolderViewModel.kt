@@ -1,5 +1,6 @@
 package com.example.jciclient
 
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -20,6 +21,8 @@ class FolderViewModel(private val remoteId: Int, val path: String) : BaseViewMod
             return FolderViewModel(remoteId, path) as T
         }
     }
+
+    val orientation by lazy { MutableLiveData<Int>() }
 
     val items by lazy { App.db.fileDao().getLiveData(remoteId, path) }
 

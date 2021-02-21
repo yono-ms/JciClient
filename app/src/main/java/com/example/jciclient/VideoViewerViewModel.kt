@@ -6,6 +6,7 @@ import fi.iki.elonen.NanoHTTPD
 import jcifs.config.PropertyConfiguration
 import jcifs.context.BaseContext
 import jcifs.smb.SmbFile
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.io.File
@@ -74,18 +75,23 @@ class VideoViewerViewModel(private val remoteId: Int, private val path: String) 
         logger.info("startWebServer")
         viewModelScope.launch {
             kotlin.runCatching {
+                progress.value = true
                 val port = Socket().use {
                     it.bind(null)
                     it.localPort
                 }
                 webServer = BuiltInWebServer(port)
                 webServer.start()
+                // delay for SurfaceView
+                delay(400)
                 "http://localhost:$port/${fileName.value}"
             }.onSuccess {
                 uriString.value = it
             }.onFailure {
                 logger.error("startWebServer", it)
                 throwable.value = it
+            }.also {
+                progress.value = false
             }
         }
     }

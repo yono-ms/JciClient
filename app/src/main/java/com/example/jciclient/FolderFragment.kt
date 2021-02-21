@@ -140,6 +140,13 @@ class FolderFragment : BaseFragment() {
         }.root
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        if (savedInstanceState == null) {
+            viewModel.orientation.value = activity?.requestedOrientation
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         if (savedInstanceState == null) {
@@ -153,6 +160,10 @@ class FolderFragment : BaseFragment() {
         val index = words.size - 2
         val title = words.getOrNull(index)
         (activity as? AppCompatActivity)?.supportActionBar?.title = title
+
+        viewModel.orientation.value?.let {
+            activity?.requestedOrientation = it
+        }
     }
 
     class FileAdapter(private val onClick: (item: FileEntity) -> Unit) :
