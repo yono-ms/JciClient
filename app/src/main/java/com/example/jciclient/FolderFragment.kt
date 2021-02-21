@@ -160,10 +160,10 @@ class FolderFragment : BaseFragment() {
         val index = words.size - 2
         val title = words.getOrNull(index)
         (activity as? AppCompatActivity)?.supportActionBar?.title = title
-
         viewModel.orientation.value?.let {
             activity?.requestedOrientation = it
         }
+        showBars()
     }
 
     class FileAdapter(private val onClick: (item: FileEntity) -> Unit) :

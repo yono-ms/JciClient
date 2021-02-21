@@ -190,6 +190,7 @@ class VideoViewerFragment : BaseFragment() {
         val words = args.path.split("/")
         val title = words.lastOrNull()
         (activity as? AppCompatActivity)?.supportActionBar?.title = title
+        hideBars()
     }
 
     private fun setupPlayer() {
