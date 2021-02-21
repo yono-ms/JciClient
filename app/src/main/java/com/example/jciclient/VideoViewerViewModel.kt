@@ -27,6 +27,8 @@ class VideoViewerViewModel(private val remoteId: Int, private val path: String) 
 
     val controlVisible by lazy { MutableLiveData(false) }
 
+    val rotation by lazy { MutableLiveData(0F) }
+
     val playing by lazy { MutableLiveData(false) }
 
     val playButtonResId = Transformations.map(playing) {
