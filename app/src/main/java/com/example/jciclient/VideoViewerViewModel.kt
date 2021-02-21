@@ -11,6 +11,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.net.Socket
+import java.net.URLDecoder
+import java.net.URLEncoder
 
 class VideoViewerViewModel(private val remoteId: Int, private val path: String) : BaseViewModel() {
     class Factory(private val remoteId: Int, private val path: String) :
@@ -86,7 +88,11 @@ class VideoViewerViewModel(private val remoteId: Int, private val path: String) 
                 webServer.start()
                 // delay for SurfaceView
                 delay(400)
-                "http://localhost:$port/${fileName.value}"
+                val encoded = URLEncoder.encode(
+                    fileName.value,
+                    "utf-8"
+                )
+                "http://localhost:$port/${encoded}"
             }.onSuccess {
                 uriString.value = it
             }.onFailure {
@@ -119,7 +125,10 @@ class VideoViewerViewModel(private val remoteId: Int, private val path: String) 
         override fun serve(session: IHTTPSession?): Response {
             logger.info("serve ${session?.uri}")
             kotlin.runCatching {
-                val uriFileName = session?.uri?.split('/')?.last()
+                val uriFileName = URLDecoder.decode(
+                    session?.uri?.split('/')?.last(),
+                    "utf-8"
+                )
                 val pathFileName = path.split('/').last()
                 if (uriFileName != pathFileName) {
                     return newFixedLengthResponse(
