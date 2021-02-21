@@ -15,6 +15,9 @@ enum class ViewerType(
     VIDEO(
         setOf("video/")
     ),
+    ZIP(
+        setOf("application/zip")
+    ),
     EXTERNAL(
         setOf()
     ),
