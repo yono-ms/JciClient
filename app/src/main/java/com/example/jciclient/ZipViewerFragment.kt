@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.jciclient.databinding.ZipViewerFragmentBinding
 
@@ -23,16 +24,24 @@ class ZipViewerFragment : BaseFragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        return ZipViewerFragmentBinding.inflate(inflater).also {
-            it.viewModel = viewModel
-            it.lifecycleOwner = viewLifecycleOwner
+        return ZipViewerFragmentBinding.inflate(inflater).also { binding ->
+            binding.viewModel = viewModel
+            binding.lifecycleOwner = viewLifecycleOwner
+
+            viewModel.throwable.observe(viewLifecycleOwner) {
+                findNavController().navigate(
+                    HomeFragmentDirections.actionGlobalMessageDialogFragment(
+                        it.message.toString()
+                    )
+                )
+            }
         }.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         if (savedInstanceState == null) {
-            viewModel.extract()
+            viewModel.extract(requireContext().cacheDir.path)
         }
     }
 }

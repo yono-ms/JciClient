@@ -35,7 +35,7 @@ enum class ViewerType(
                 return EXTERNAL
             }
             return MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext)?.let { mimeType ->
-                logger.info("mimeType=$mimeType")
+                logger.trace("mimeType=$mimeType")
                 values().forEach { viewerType ->
                     viewerType.mimeTypes.forEach {
                         if (mimeType.startsWith(it)) {
