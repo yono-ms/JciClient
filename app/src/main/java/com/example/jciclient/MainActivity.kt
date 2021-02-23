@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity() {
         navController.addOnDestinationChangedListener { _, destination, arguments ->
             logger.info("DestinationChanged destination=$destination arguments=$arguments")
             when (destination.id) {
-                R.id.imageViewerFragment, R.id.videoViewerFragment -> supportActionBar?.hide()
+                R.id.imageViewerFragment, R.id.videoViewerFragment, R.id.zipViewerFragment -> supportActionBar?.hide()
                 else -> supportActionBar?.show()
             }
         }

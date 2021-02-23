@@ -76,6 +76,9 @@
         <action
             android:id="@+id/action_folderFragment_to_videoViewerFragment"
             app:destination="@id/videoViewerFragment" />
+        <action
+            android:id="@+id/action_folderFragment_to_zipViewerFragment"
+            app:destination="@id/zipViewerFragment" />
     </fragment>
     <fragment
         android:id="@+id/imageViewerFragment"
@@ -106,4 +109,16 @@
         android:name="com.example.jciclient.ExternalSettingFragment"
         android:label="ExternalSettingFragment"
         tools:layout="@layout/external_setting_fragment" />
+    <fragment
+        android:id="@+id/zipViewerFragment"
+        android:name="com.example.jciclient.ZipViewerFragment"
+        android:label="zip_viewer_fragment"
+        tools:layout="@layout/zip_viewer_fragment">
+        <argument
+            android:name="remoteId"
+            app:argType="integer" />
+        <argument
+            android:name="path"
+            app:argType="string" />
+    </fragment>
 </navigation>

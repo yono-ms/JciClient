@@ -103,6 +103,14 @@ class FolderFragment : BaseFragment() {
                                 )
                             )
                         }
+                        ViewerType.ZIP -> {
+                            findNavController().navigate(
+                                FolderFragmentDirections.actionFolderFragmentToZipViewerFragment(
+                                    args.remoteId,
+                                    item.path
+                                )
+                            )
+                        }
                         ViewerType.EXTERNAL -> {
                             Intent(context, BridgeService::class.java).apply {
                                 putExtra(BridgeService.Key.REMOTE_ID.name, args.remoteId)
