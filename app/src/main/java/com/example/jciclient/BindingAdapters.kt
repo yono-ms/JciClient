@@ -1,5 +1,6 @@
 package com.example.jciclient
 
+import android.net.Uri
 import android.view.View
 import android.widget.ImageView
 import androidx.databinding.BindingAdapter
@@ -16,6 +17,13 @@ fun setErrorMessage(view: TextInputLayout, errorMessage: Int?) {
 fun setSrcCompat(view: ImageView, src: Int?) {
     src?.let {
         view.setImageResource(it)
+    }
+}
+
+@BindingAdapter("app:srcCompat")
+fun setSrcCompat(view: ImageView, src: String?) {
+    src?.let {
+        view.setImageURI(Uri.parse(it))
     }
 }
 

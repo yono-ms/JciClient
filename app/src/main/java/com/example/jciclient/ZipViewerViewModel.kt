@@ -34,7 +34,7 @@ class ZipViewerViewModel(private val remoteId: Int, val path: String) : BaseView
 
     val items by lazy { MutableLiveData<List<EntryInfo>>() }
 
-    private val index by lazy { MutableLiveData(0) }
+    val index by lazy { MutableLiveData(0) }
 
     private val max = Transformations.map(items) {
         it.size
@@ -83,7 +83,7 @@ class ZipViewerViewModel(private val remoteId: Int, val path: String) : BaseView
                                 destFile.outputStream().use { outputStream ->
                                     val result = zipInputStream.copyTo(outputStream)
                                     logger.trace("${zipEntry.name} $result bytes.")
-                                    list.add(EntryInfo(zipEntry.name, cacheName))
+                                    list.add(EntryInfo(zipEntry.name, destFile.path))
                                 }
                             }
 
