@@ -1,4 +1,4 @@
-package com.example.jciclient
+package com.example.jciclient.view
 
 import android.content.Context
 import android.content.Context.WINDOW_SERVICE
